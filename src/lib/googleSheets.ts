@@ -4,12 +4,12 @@ export type Contact = {
   name: string;
   profileUrl: string;
   contactedAt: string;
+  leadEvent: string;
 };
 
 const SHEET_ID = process.env.GOOGLE_SHEET_ID;
 // Matches the range the Chrome extension appends rows into
-// (DM_CONTACTS_SHEET_RANGE in background/background.js).
-const SHEET_RANGE = process.env.GOOGLE_SHEET_RANGE || "Sheet1!A:C";
+const SHEET_RANGE = process.env.GOOGLE_SHEET_RANGE || "Sheet1!A:D";
 
 function getAuth() {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -32,9 +32,7 @@ function getAuth() {
 
 /**
  * Fetches DM contacts logged by the Chrome extension (name, profile URL,
- * contacted-at timestamp) from the configured Google Sheet, via a Google
- * service account — the sheet must be shared with that service account's
- * email (Viewer access) for this to work.
+ * contacted-at timestamp, and lead event) from the configured Google Sheet.
  */
 export async function getContacts(): Promise<Contact[]> {
   if (!SHEET_ID) {
@@ -51,8 +49,7 @@ export async function getContacts(): Promise<Contact[]> {
 
   const rows = res.data.values || [];
 
-  // First row is the header ("Name", "URL", "Date/Time") — skip it, and
-  // skip any fully-blank rows.
+  // First row is the header ("Name", "URL", "Date/Time", "Event") — skip it.
   return rows
     .slice(1)
     .filter((row) => row.some((cell) => (cell || "").toString().trim().length > 0))
@@ -60,5 +57,6 @@ export async function getContacts(): Promise<Contact[]> {
       name: row[0] || "Unknown",
       profileUrl: row[1] || "",
       contactedAt: row[2] || "",
+      leadEvent: row[3] || "Pending",
     }));
 }

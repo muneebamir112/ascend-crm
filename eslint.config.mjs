@@ -12,7 +12,17 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "node_modules/**",
+    "**/.next/**",
+    "**/*.log",
+    "coverage/**",
+    "dist/**",
+    ".turbo/**",
+    "**/*.tsbuildinfo",
+    "**/*.d.ts",
+    "**/*.d.ts.map",
   ]),
+  { files: ["src/generated/prisma/**/*.{js,ts,jsx,tsx}"], rules: {} },
 ]);
 
 export default eslintConfig;
