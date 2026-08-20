@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "FB Auto-Reply MVP",
+  "version": "1.0",
+  "description": "Auto-replies to comments on specific Facebook posts based on keywords.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "identity",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://*.facebook.com/*",
+    "https://*.messenger.com/*",
+    "https://sheets.googleapis.com/*"
+  ],
+  "oauth2": {
+    "client_id": "251912074518-e6262bo0iklapgmphi15isajnqtr3h7f.apps.googleusercontent.com",
+    "scopes": ["https://www.googleapis.com/auth/spreadsheets"]
+  },
+  "background": {
+    "service_worker": "background/background.js"
+  },
+  "side_panel": {
+    "default_path": "popup/popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.facebook.com/*"],
+      "js": ["content/content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://*.facebook.com/*", "https://*.messenger.com/*"],
+      "js": ["content/messenger.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "action": {
+    "default_title": "FB Auto-Reply (click to open the side panel)"
+  }
+}

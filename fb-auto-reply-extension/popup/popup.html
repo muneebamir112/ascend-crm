@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FB Auto Reply</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <div class="header-title">
+      <span class="status-indicator" id="status-dot"></span>
+      FB Auto Reply
+    </div>
+    <label class="switch">
+      <input type="checkbox" id="toggle-extension">
+      <span class="slider round"></span>
+    </label>
+  </div>
+
+  <div class="stats">
+    <div class="stat-item">
+      <span class="stat-value" id="post-count">0</span>
+      <span class="stat-label">posts monitored</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value" id="reply-count">0</span>
+      <span class="stat-label">replies sent today</span>
+    </div>
+  </div>
+
+  <nav class="tab-bar" role="tablist">
+    <button class="tab-btn active" data-tab="comments" role="tab" aria-selected="true">
+      <span class="tab-icon">💬</span> Comments
+    </button>
+    <button class="tab-btn" data-tab="messenger" role="tab" aria-selected="false">
+      <span class="tab-icon">✉️</span> Messenger
+    </button>
+    <button class="tab-btn" data-tab="activity" role="tab" aria-selected="false">
+      <span class="tab-icon">📋</span> Activity
+    </button>
+  </nav>
+
+  <div class="tab-content">
+
+    <div class="tab-panel active" data-panel="comments">
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">🔗</span> Monitored Post URLs
+        </div>
+        <div class="input-group">
+          <input type="text" id="post-url-input" placeholder="Paste Facebook post URL...">
+          <button id="add-post-btn" class="icon-btn" title="Add post">+</button>
+        </div>
+        <ul id="post-list" class="list"></ul>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">🔑</span> Keyword Rules
+        </div>
+        <div class="section-tip">
+          Tip: separate multiple keyword synonyms with commas (e.g. "price, cost, how much") to trigger the same rule.
+        </div>
+        <div class="input-group-column">
+          <input type="text" id="keyword-input" placeholder="Keyword(s), comma-separated (e.g. price, cost, how much)">
+          <textarea id="reply-input" placeholder="Auto-reply text..."></textarea>
+          <button id="add-rule-btn" class="primary-btn">Save Rule</button>
+        </div>
+        <ul id="rule-list" class="list"></ul>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-header-left"><span class="section-icon">🌐</span> Reply to Every Comment</span>
+          <label class="switch switch-sm">
+            <input type="checkbox" id="toggle-catchall">
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <div class="section-tip">
+          Applies to monitored posts. Only used when a comment doesn't match any Keyword Rule above.
+        </div>
+        <div class="input-group-column">
+          <textarea id="catchall-reply-input" placeholder="Default auto-reply text for any comment..."></textarea>
+          <button id="add-catchall-btn" class="primary-btn">Save Reply</button>
+        </div>
+        <ul id="catchall-list" class="list"></ul>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="messenger">
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">💬</span> Messenger DM Keyword Rules
+        </div>
+        <div class="section-tip">
+          Tip: save more than one message under the same keyword to build a sequence — they're all sent in order, one after another, when the keyword is detected.
+        </div>
+        <div class="input-group-column">
+          <input type="text" id="dm-keyword-input" placeholder="Keyword (e.g. info, price)">
+          <textarea id="dm-reply-input" placeholder="Message text (save again with the same keyword to add the next step)..."></textarea>
+          <button id="add-dm-rule-btn" class="primary-btn">Save DM Rule</button>
+        </div>
+        <ul id="dm-rule-list" class="list"></ul>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="activity">
+      <div class="section">
+        <div class="section-header">
+          <span class="section-header-left"><span class="section-icon">📋</span> Activity Logs</span>
+          <button id="clear-logs-btn" class="text-btn">Clear</button>
+        </div>
+        <ul id="log-list" class="list log-list"></ul>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <span class="footer-label">Max replies/hour</span>
+    <input type="number" id="rate-limit" value="10" min="1" max="50">
+  </div>
+
+  <script src="popup.js"></script>
+  <script src="popup-tabs.js"></script>
+</body>
+</html>
