@@ -1,0 +1,7 @@
+[Comments]
+price, cost, how much = Sure! I will send you the price list in your DMs.
+info, details, more info = Here are the details you requested.
+
+[Messenger]
+hi, hello, hey = Welcome! How can we help you today?
+buy, purchase = Great! Let me connect you with our sales team.

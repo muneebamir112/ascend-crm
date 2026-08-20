@@ -771,8 +771,14 @@ async function triggerReply(commentContainer, commentText, replyText) {
       selection.removeAllRanges();
       selection.addRange(range);
 
-      document.execCommand('insertText', false, replyText);
-      textbox.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+      for (let i = 0; i < replyText.length; i++) {
+        document.execCommand('insertText', false, replyText[i]);
+        textbox.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+        
+        // Random delay between 50ms and 150ms between keystrokes
+        const charDelayMs = Math.floor(Math.random() * (150 - 50 + 1)) + 50;
+        await new Promise(r => setTimeout(r, charDelayMs));
+      }
     }
 
     await new Promise(r => setTimeout(r, 400));

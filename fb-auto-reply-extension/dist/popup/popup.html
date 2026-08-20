@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FB Auto Reply</title>
   <link rel="stylesheet" href="popup.css">
 </head>
-
 <body>
   <div class="header">
     <div class="header-title">
@@ -46,8 +44,7 @@
 
   <div style="padding: 10px 15px; border-bottom: 1px solid #3c4043; display: flex; justify-content: flex-end;">
     <input type="file" id="import-file" accept=".txt" style="display: none;">
-    <button id="import-btn" class="primary-btn"
-      style="width: auto; padding: 4px 10px; font-size: 12px; background-color: #34a853;">Import input.txt</button>
+    <button id="import-btn" class="primary-btn" style="width: auto; padding: 4px 10px; font-size: 12px; background-color: #34a853;">Import input.txt</button>
   </div>
 
   <div class="tab-content">
@@ -104,13 +101,11 @@
           <span class="section-icon">💬</span> Messenger DM Keyword Rules
         </div>
         <div class="section-tip">
-          Tip: save more than one message under the same keyword to build a sequence — they're all sent in order, one
-          after another, when the keyword is detected.
+          Tip: save more than one message under the same keyword to build a sequence — they're all sent in order, one after another, when the keyword is detected.
         </div>
         <div class="input-group-column">
           <input type="text" id="dm-keyword-input" placeholder="Keyword (e.g. info, price)">
-          <textarea id="dm-reply-input"
-            placeholder="Message text (save again with the same keyword to add the next step)..."></textarea>
+          <textarea id="dm-reply-input" placeholder="Message text (save again with the same keyword to add the next step)..."></textarea>
           <button id="add-dm-rule-btn" class="primary-btn">Save DM Rule</button>
         </div>
         <ul id="dm-rule-list" class="list"></ul>
@@ -137,5 +132,4 @@
   <script src="popup.js"></script>
   <script src="popup-tabs.js"></script>
 </body>
-
 </html>

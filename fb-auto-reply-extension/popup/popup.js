@@ -421,5 +421,113 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // Import functionality
+  const importBtn = document.getElementById('import-btn');
+  const importFile = document.getElementById('import-file');
+
+  if (importBtn && importFile) {
+    importBtn.addEventListener('click', () => {
+      importFile.click();
+    });
+
+    importFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const text = evt.target.result;
+        parseInputFile(text);
+        importFile.value = ''; // reset
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  function parseInputFile(text) {
+    const lines = text.split(/\r?\n/);
+    let currentSection = null;
+    let newRules = [];
+    let newDmRules = [];
+
+    for (let line of lines) {
+      line = line.trim();
+      if (!line) continue;
+
+      if (line.toLowerCase() === '[comments]') {
+        currentSection = 'comments';
+        continue;
+      } else if (line.toLowerCase() === '[messenger]') {
+        currentSection = 'messenger';
+        continue;
+      }
+
+      if (line.includes('=')) {
+        const parts = line.split('=');
+        const keywordStr = parts[0].trim();
+        const replyStr = parts.slice(1).join('=').trim();
+        
+        if (!keywordStr || !replyStr) continue;
+
+        if (currentSection === 'comments') {
+          const keywords = keywordStr.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
+          newRules.push({ keywords, replies: [replyStr] });
+        } else if (currentSection === 'messenger') {
+          const keywords = keywordStr.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
+          for (const k of keywords) {
+            newDmRules.push({ keyword: k, messages: [replyStr] });
+          }
+        }
+      }
+    }
+
+    if (newRules.length > 0 || newDmRules.length > 0) {
+      chrome.storage.local.get(['rules', 'dmRules'], (data) => {
+        let rules = data.rules || [];
+        let dmRules = data.dmRules || [];
+
+        newRules.forEach(nr => {
+            const keywordSetKey = [...nr.keywords].sort().join('|');
+            const existingRule = rules.find(r => {
+                const ruleKeywords = getRuleKeywords(r).map(k => k.toLowerCase());
+                return [...ruleKeywords].sort().join('|') === keywordSetKey;
+            });
+            if (existingRule) {
+                const variants = getReplyVariants(existingRule);
+                if (!variants.includes(nr.replies[0])) {
+                    variants.push(nr.replies[0]);
+                }
+                existingRule.replies = variants;
+                delete existingRule.reply;
+            } else {
+                rules.push(nr);
+            }
+        });
+
+        newDmRules.forEach(ndr => {
+            const existingRule = dmRules.find(r => r.keyword === ndr.keyword);
+            if (existingRule) {
+                const messages = getDmMessages(existingRule);
+                if (!messages.includes(ndr.messages[0])) {
+                    messages.push(ndr.messages[0]);
+                }
+                existingRule.messages = messages;
+                delete existingRule.reply;
+            } else {
+                dmRules.push(ndr);
+            }
+        });
+
+        chrome.storage.local.set({ rules, dmRules }, () => {
+          renderRules(rules);
+          renderDmRules(dmRules);
+          alert('Keywords imported successfully!');
+        });
+      });
+    } else {
+      alert('No keywords found to import. Check file format.');
+    }
+  }
 });
 
