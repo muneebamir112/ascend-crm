@@ -137,23 +137,24 @@
   // previews, "/t/" conversation links) since Messenger's real sidebar markup
   // hasn't been inspected directly — first thing to check against the real
   // DOM if this doesn't pick up an unread conversation.
-  const CONVERSATION_LINK_SELECTOR = 'a[href*="/t/"]';
   const SIDEBAR_SCAN_INTERVAL_MS = 4000;
   let sidebarScanInterval = null;
   let openingConversation = false;
 
   function isConversationLinkUnread(link) {
-    // Unread conversations are typically shown with bolded preview text —
-    // same font-weight heuristic already used for comment authors in content.js.
     if (link.querySelector('[style*="font-weight: 600"], [style*="font-weight: bold"], strong')) return true;
     const ariaLabel = link.getAttribute('aria-label') || '';
     if (/unread/i.test(ariaLabel)) return true;
+    if (link.querySelector('[aria-label*="unread" i]')) return true;
     return false;
   }
 
   function isCurrentConversationLink(link) {
     try {
-      return new URL(link.href, window.location.href).pathname === window.location.pathname;
+      if (link.href) {
+        return new URL(link.href, window.location.href).pathname === window.location.pathname;
+      }
+      return false; // If it's a div, we can't easily check URL, so we assume it might not be current.
     } catch (e) {
       return false;
     }
@@ -163,7 +164,11 @@
     if (!isExtensionContextValid()) { handleInvalidatedContext(); return; }
     if (openingConversation || dmReplyInProgress) return; // don't interrupt an in-progress open/reply
 
-    const links = document.querySelectorAll(CONVERSATION_LINK_SELECTOR);
+    // Scope to sidebar to avoid clicking message bubbles which also have role="row"
+    const sidebar = document.querySelector('div[data-pagelet="MWThreadList"], div[aria-label="Chats" i], div[role="navigation"]');
+    if (!sidebar) return;
+
+    const links = sidebar.querySelectorAll('a[href*="/t/"], div[role="row"], div[data-testid="mwthreadlist-item"]');
     for (const link of links) {
       if (isCurrentConversationLink(link)) continue; // already open — existing watcher handles it
       if (!isConversationLinkUnread(link)) continue;
@@ -358,12 +363,25 @@
     logDmContactEvent(bubble, "DM");
   }
 
+  async function waitForComposer(bubble, timeout = 5000) {
+    const startTime = Date.now();
+    while (Date.now() - startTime < timeout) {
+      const composer = bubble ? findComposerNearBubble(bubble) : findMessageComposer();
+      if (composer) return composer;
+      await new Promise(r => setTimeout(r, 200));
+    }
+    return null;
+  }
+
   async function checkTextAgainstDmRules(text, bubble) {
     if (!isExtensionContextValid()) { handleInvalidatedContext(); return; }
     if (dmReplyInProgress) return; // Avoid overlapping sends into the same composer
 
     const lowerText = text.toLowerCase();
-    const preferredComposer = bubble ? findComposerNearBubble(bubble) : null;
+    
+    // Wait for the composer to render. When a chat is manually opened, 
+    // messages render before the composer box is mounted.
+    const preferredComposer = await waitForComposer(bubble, 4000);
 
     try {
       for (const rule of dmState.dmRules) {
@@ -451,7 +469,7 @@
         return false;
       }
 
-      const typeAttempt = () => {
+      const typeAttempt = async () => {
         textbox.focus();
 
         const selection = window.getSelection();
@@ -461,16 +479,24 @@
         selection.removeAllRanges();
         selection.addRange(range);
 
-        document.execCommand('insertText', false, replyText);
-        textbox.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+        const words = replyText.split(/(\s+)/);
+        for (let i = 0; i < words.length; i++) {
+          document.execCommand('insertText', false, words[i]);
+          textbox.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+          
+          if (words[i].trim().length > 0) {
+            const wordDelayMs = Math.floor(Math.random() * (400 - 150 + 1)) + 150;
+            await new Promise(r => setTimeout(r, wordDelayMs));
+          }
+        }
       };
 
-      const delayMs = Math.floor(Math.random() * (6000 - 2000 + 1)) + 2000;
+      const delayMs = Math.floor(Math.random() * (2000 - 500 + 1)) + 500;
       console.log(`[FB Auto-Reply DM] Adding random human-like delay of ${delayMs}ms before typing...`);
       await new Promise(r => setTimeout(r, delayMs));
 
       console.log("[FB Auto-Reply DM] Typing reply...");
-      typeAttempt();
+      await typeAttempt();
       await new Promise(r => setTimeout(r, 400));
 
       let typedText = (textbox.innerText || textbox.textContent || '').trim();
@@ -478,7 +504,7 @@
         // Something (e.g. a third-party extension like Grammarly hooking the
         // same textbox) may have cleared it — retry once before giving up.
         console.warn("[FB Auto-Reply DM] Reply text didn't land on first try, retrying once. Composer contains:", typedText);
-        typeAttempt();
+        await typeAttempt();
         await new Promise(r => setTimeout(r, 400));
 
         typedText = (textbox.innerText || textbox.textContent || '').trim();

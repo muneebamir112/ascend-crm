@@ -757,7 +757,7 @@ async function triggerReply(commentContainer, commentText, replyText) {
       // it sitting there) — don't type it again, just retry submitting.
       console.log("[FB Auto-Reply] Reply text already present in box from a previous attempt, skipping re-typing.");
     } else {
-      const delayMs = Math.floor(Math.random() * (12000 - 3000 + 1)) + 3000;
+      const delayMs = Math.floor(Math.random() * (1000 - 300 + 1)) + 300;
       console.log(`[FB Auto-Reply] Adding random human-like delay of ${delayMs}ms before typing...`);
       await new Promise(r => setTimeout(r, delayMs));
 
@@ -775,8 +775,8 @@ async function triggerReply(commentContainer, commentText, replyText) {
         document.execCommand('insertText', false, replyText[i]);
         textbox.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
         
-        // Random delay between 50ms and 150ms between keystrokes
-        const charDelayMs = Math.floor(Math.random() * (150 - 50 + 1)) + 50;
+        // Random delay between 5ms and 15ms between keystrokes
+        const charDelayMs = Math.floor(Math.random() * (15 - 5 + 1)) + 5;
         await new Promise(r => setTimeout(r, charDelayMs));
       }
     }
